@@ -1,5 +1,7 @@
 package main
 
+const baseHost = "localhost:8080"
+
 import (
 	"encoding/json"
 	"fmt"
@@ -18,7 +20,7 @@ func main() {
 	tenantID := "3971533981712"
 	fileID := "fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e"
 
-	url := fmt.Sprintf("http://%s.app.com/storage/%s", tenantID, fileID)
+	url := fmt.Sprintf("http://%s.%s/storage/%s", tenantID, baseHost, fileID)
 
 	// Make HTTP request
 	resp, err := http.Get(url)
