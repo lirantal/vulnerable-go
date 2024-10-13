@@ -47,5 +47,11 @@ Now that the storage server is running in the background we run the Go program.
 ## Run the project
 
 ```bash
+go run ./download-resize.go
+```
+
+## Compile the project (not necessary)
+
+```bash
 ./convert.out
 ```
