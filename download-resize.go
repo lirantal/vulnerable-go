@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-const baseHost = "localhost:8080"
+const baseHost = "localtest.me:8080"
 
 type FileInfo struct {
 	Filename string `json:"filename"`
