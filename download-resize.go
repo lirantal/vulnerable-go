@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,10 +19,12 @@ type FileInfo struct {
 	Download string `json:"download"`
 }
 
-func downloadAndResize(tenantID, fileID string) error {
+func downloadAndResize(tenantID, fileID, fileSize string) error {
 	// Example input based on the mocked storage server in fixtures/http directory of the project:
 	// tenantID := "3971533981712"
 	// fileID := "fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e"
+
+	log.Printf("Processing request for tenantID: %s, fileID: %s", tenantID, fileID)
 
 	urlStr := fmt.Sprintf("http://%s.%s/storage/%s.json", tenantID, baseHost, fileID)
 	fmt.Println("Resolved URL: ", urlStr)
@@ -75,8 +78,9 @@ func downloadAndResize(tenantID, fileID string) error {
 		panic(err)
 	}
 
-	// Resize image using system command (replace 'convert' if needed)
-	_, err = exec.Command("convert", targetFilename, "-resize", "180x180", targetFilename).Output()
+	convertCmd := fmt.Sprintf("convert %s -resize %sx%s %s", targetFilename, fileSize, fileSize, targetFilename)
+	fmt.Println("Running command:", convertCmd)
+	_, err = exec.Command("sh", "-c", convertCmd).Output()
 	if (err != nil) {
 		fmt.Println("Error resizing image:", err)
 	} else {
@@ -95,6 +99,11 @@ func main() {
 		// If data lives on the query string we can use this:
 		tenantID := c.Query("tenantID")
 		fileID := c.Query("fileID")
+		fileSize := c.Query("fileSize")
+
+		if (fileSize == "") {
+			fileSize = "200"
+		}
 
 		// Validate tenantID and fileID
 		if (tenantID == "" || fileID == "") {
@@ -103,7 +112,7 @@ func main() {
 		}
 
 		// Call the download and resize function
-		err := downloadAndResize(tenantID, fileID)
+		err := downloadAndResize(tenantID, fileID, fileSize)
 		if (err != nil) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
