@@ -1,4 +1,8 @@
-# vulnerable-go
+# Cloudpawnery App
+
+This is a simple Go program that downloads an image from a mocked storage server, resizes it and uploads it back to the server.
+
+It's kinda like Cloudinary, a cloud-based image processing service, but with a lot of bad practices and no security at all.
 
 ## Build the project
 
