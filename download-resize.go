@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os/exec"
 
 	"github.com/gin-gonic/gin"
@@ -22,11 +23,18 @@ func downloadAndResize(tenantID, fileID string) error {
 	// tenantID := "3971533981712"
 	// fileID := "fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e"
 
-	url := fmt.Sprintf("http://%s.%s/storage/%s.json", tenantID, baseHost, fileID)
-	fmt.Println("Resolved URL: ", url)
+	urlStr := fmt.Sprintf("http://%s.%s/storage/%s.json", tenantID, baseHost, fileID)
+	fmt.Println("Resolved URL: ", urlStr)
 
+	// Parse the URL to extract the hostname
+	parsedURL, err := url.Parse(urlStr)
+	if (err != nil) {
+		panic(err)
+	}
+	fmt.Println("Resolved Hostname: ", parsedURL.Hostname())
+	
 	// Make HTTP request
-	resp, err := http.Get(url)
+	resp, err := http.Get(urlStr)
 	if (err != nil) {
 		panic(err)
 	}
