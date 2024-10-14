@@ -1,0 +1,10 @@
+### 
+// Send a POST request with a JSON body to the specified URL
+// This is a safe request to a local server
+
+POST http://localhost:7000/cloudpawnery/image
+    ?tenantID=3971533981712
+    &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
+Content-Type: application/json
+
+{}
