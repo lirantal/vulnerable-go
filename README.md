@@ -54,6 +54,10 @@ Now that the storage server is running in the background we run the Go program.
 go run ./download-resize.go
 ```
 
+## Hit the API endpoint
+
+Use the attached `test.http` file in this repository to test the API endpoint.
+
 ## Compile the project (not necessary)
 
 ```bash

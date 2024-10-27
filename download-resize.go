@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -24,17 +24,17 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	// tenantID := "3971533981712"
 	// fileID := "fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e"
 
-	log.Printf("Processing request for tenantID: %s, fileID: %s", tenantID, fileID)
+	slog.Info("Processing request", "tenantID", tenantID, "fileID", fileID)
 
 	urlStr := fmt.Sprintf("http://%s.%s/storage/%s.json", tenantID, baseHost, fileID)
-	fmt.Println("Resolved URL: ", urlStr)
+	slog.Info("Resolved URL", "url", urlStr)
 
 	// Parse the URL to extract the hostname
 	parsedURL, err := url.Parse(urlStr)
 	if (err != nil) {
 		panic(err)
 	}
-	fmt.Println("Resolved Hostname: ", parsedURL.Hostname())
+	slog.Info("Resolved Hostname", "hostname", parsedURL.Hostname())
 	
 	// Make HTTP request
 	resp, err := http.Get(urlStr)
@@ -79,12 +79,12 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	}
 
 	convertCmd := fmt.Sprintf("convert %s -resize %sx%s %s", targetFilename, fileSize, fileSize, targetFilename)
-	fmt.Println("Running command:", convertCmd)
+	slog.Info("Running command", "command", convertCmd)
 	_, err = exec.Command("sh", "-c", convertCmd).Output()
 	if (err != nil) {
-		fmt.Println("Error resizing image:", err)
+		slog.Info("Error resizing image", "error", err)
 	} else {
-		fmt.Println("Downloaded and resized image:", targetFilename)
+		slog.Info("Downloaded and resized image", "filename", targetFilename)
 	}
 
 	return nil
