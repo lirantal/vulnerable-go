@@ -38,10 +38,10 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	
 	// Make HTTP request
 	resp, err := http.Get(urlStr)
+	defer resp.Body.Close()
 	if (err != nil) {
 		panic(err)
 	}
-	defer resp.Body.Close()
 
 	// Read response body
 	body, err := ioutil.ReadAll(resp.Body)
@@ -58,11 +58,11 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 
 	// Download file
 	downloadResp, err := http.Get(info.Download)
+	defer downloadResp.Body.Close()
 	if (err != nil) {
 		panic(err)
 	}
-	defer downloadResp.Body.Close()
-
+	
 	// Create target filename
 	targetFilename := fmt.Sprintf("uploads/%s", info.Filename)
 
