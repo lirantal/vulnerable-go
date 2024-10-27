@@ -19,6 +19,16 @@ type FileInfo struct {
 	Download string `json:"download"`
 }
 
+var (
+    ErrInvalidURL        = fmt.Errorf("invalid URL")
+    ErrHTTPRequestFailed = fmt.Errorf("HTTP request failed")
+    ErrReadBodyFailed    = fmt.Errorf("failed to read response body")
+    ErrJSONUnmarshal     = fmt.Errorf("failed to unmarshal JSON")
+    ErrFileDownload      = fmt.Errorf("failed to download file")
+    ErrFileWrite         = fmt.Errorf("failed to write file")
+    ErrImageResize       = fmt.Errorf("failed to resize image")
+)
+
 func downloadAndResize(tenantID, fileID, fileSize string) error {
 	// Example input based on the mocked storage server in fixtures/http directory of the project:
 	// tenantID := "3971533981712"
@@ -32,7 +42,7 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	// Parse the URL to extract the hostname
 	parsedURL, err := url.Parse(urlStr)
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrInvalidURL, err)
 	}
 	slog.Info("Resolved Hostname", "hostname", parsedURL.Hostname())
 	
@@ -40,27 +50,28 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	resp, err := http.Get(urlStr)
 	defer resp.Body.Close()
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrHTTPRequestFailed, err)
 	}
 
 	// Read response body
 	body, err := ioutil.ReadAll(resp.Body)
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrReadBodyFailed, err)
 	}
 
 	// Decode JSON data
 	var info FileInfo
 	err = json.Unmarshal(body, &info)
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrJSONUnmarshal, err)
 	}
 
 	// Download file
 	downloadResp, err := http.Get(info.Download)
 	defer downloadResp.Body.Close()
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrFileDownload, err)
+
 	}
 	
 	// Create target filename
@@ -69,24 +80,23 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 	// read the downloaded file into memory
 	fileBytes, err := ioutil.ReadAll(downloadResp.Body)
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrReadBodyFailed, err)
 	}
 
 	// Save downloaded file
 	err = ioutil.WriteFile(targetFilename, fileBytes, 0644)
 	if (err != nil) {
-		panic(err)
+		return fmt.Errorf("%w: %v", ErrFileWrite, err)
 	}
 
 	convertCmd := fmt.Sprintf("convert %s -resize %sx%s %s", targetFilename, fileSize, fileSize, targetFilename)
 	slog.Info("Running command", "command", convertCmd)
 	_, err = exec.Command("sh", "-c", convertCmd).Output()
 	if (err != nil) {
-		slog.Info("Error resizing image", "error", err)
-	} else {
-		slog.Info("Downloaded and resized image", "filename", targetFilename)
+		return fmt.Errorf("%w: %v", ErrImageResize, err)
 	}
 
+	slog.Info("Downloaded and resized image", "filename", targetFilename)
 	return nil
 }
 
