@@ -88,7 +88,7 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
     }
 
     // Save downloaded file
-    err = os.WriteFile(targetFilename, fileBytes, 0644)
+    err = os.WriteFile(targetFilename, fileBytes, 0600)
     if err != nil {
         slog.Error("Failed to write file", "error", err)
         return fmt.Errorf("%w: %v", ErrFileWrite, err)
