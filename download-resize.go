@@ -32,7 +32,7 @@ type FileInfo struct {
     Download string `json:"download"`
 }
 
-func downloadAndResize(tenantID, fileID, fileSize string) error {
+func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) error {
     slog.Info("Processing request", "tenantID", tenantID, "fileID", fileID)
 
     urlStr := fmt.Sprintf("http://%s.%s/storage/%s.json", tenantID, baseHost, fileID)
@@ -96,7 +96,8 @@ func downloadAndResize(tenantID, fileID, fileSize string) error {
 
     convertCmd := fmt.Sprintf("convert %s -resize %sx%s %s", targetFilename, fileSize, fileSize, targetFilename)
     slog.Info("Running command", "command", convertCmd)
-    _, err = exec.Command("sh", "-c", convertCmd).Output()
+    
+    _, err = exec.CommandContext(ctx, "sh", "-c", convertCmd).CombinedOutput()
     if err != nil {
         slog.Error("Error resizing image", "error", err)
         return fmt.Errorf("%w: %v", ErrImageResize, err)
@@ -127,7 +128,7 @@ func main() {
         }
 
         // Call the download and resize function
-        err := downloadAndResize(tenantID, fileID, fileSize)
+        err := downloadAndResize(c, tenantID, fileID, fileSize)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
