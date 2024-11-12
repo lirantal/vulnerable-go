@@ -110,6 +110,32 @@ func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) erro
 func main() {
     // Create a Gin router
     router := gin.Default()
+    router.LoadHTMLGlob("templates/*")
+
+    router.GET("/cloudpawnery/user", func(c *gin.Context) {
+        userId := c.Query("userId")
+        userIds := []string{"1", "2", "3"}
+
+        found := false
+        for _, id := range userIds {
+            if id == userId {
+                found = true
+                break
+            }
+        }
+        
+        if !found {
+            c.HTML(http.StatusOK, "users-not-found.tmpl", gin.H{
+                "userId": userId,
+            })
+            return
+        }
+
+        c.HTML(http.StatusOK, "users.tmpl", gin.H{
+			"userId": userId,
+		})
+        return
+    })
 
     // Define a POST endpoint
     router.POST("/cloudpawnery/image", func(c *gin.Context) {
