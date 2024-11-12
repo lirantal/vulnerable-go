@@ -139,6 +139,13 @@ func main() {
         return
     })
 
+    router.GET("/welcome", func(c *gin.Context) {
+        firstname := c.DefaultQuery("firstname", "Guest")
+		lastname := c.Query("lastname")
+		c.String(http.StatusOK, "Hello %s %s", firstname, lastname)
+        return
+    })
+
     // Define a POST endpoint
     router.POST("/cloudpawnery/image", func(c *gin.Context) {
         tenantID := c.Query("tenantID")

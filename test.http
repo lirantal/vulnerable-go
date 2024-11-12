@@ -45,3 +45,18 @@ POST http://localhost:7000/cloudpawnery/image
 Content-Type: application/json
 
 {}
+
+### ⚠️ Careful Now: XSS ... ?
+
+GET http://localhost:7000/welcome
+Content-Type: application/html
+
+{}
+
+### ❌ Careful Now: XSS by opting into custom response write
+
+GET http://localhost:7000/welcome
+    ?lastname=gibson<script>alert(1)</script>
+Content-Type: application/html
+
+{}
