@@ -114,6 +114,7 @@ func main() {
 
     router.GET("/cloudpawnery/user", func(c *gin.Context) {
         userId := c.Query("userId")
+        redirectPage := c.Query("redirectPage")
         userIds := []string{"1", "2", "3"}
 
         found := false
@@ -133,6 +134,7 @@ func main() {
 
         c.HTML(http.StatusOK, "users.tmpl", gin.H{
 			"userId": userId,
+            "redirectPage": redirectPage,
 		})
         return
     })
