@@ -6,7 +6,7 @@
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
 
-POST http://localhost:7000/cloudpawnery/image
+POST http://localhost:6000/cloudpawnery/image
     ?tenantID=3971533981712
     &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
     &fileSize=180
@@ -18,7 +18,7 @@ Content-Type: application/json
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
 
-POST http://localhost:7000/cloudpawnery/image
+POST http://localhost:6000/cloudpawnery/image
     ?tenantID=3971533981712
     &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
     &fileSize=;touch /tmp/hello #
@@ -30,7 +30,7 @@ Content-Type: application/json
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
 
-POST http://localhost:7000/cloudpawnery/image
+POST http://localhost:6000/cloudpawnery/image
     ?tenantID=3971533981712
     &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
     &fileSize=%3Btouch%20%2Ftmp%2Fhello%20%23
@@ -44,7 +44,7 @@ Content-Type: application/json
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
 
-POST http://localhost:7000/cloudpawnery/image
+POST http://localhost:6000/cloudpawnery/image
     ?tenantID=:abc@example.com/app.json?url=
     &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
     &fileSize=;touch /tmp/hello #
@@ -57,16 +57,25 @@ Content-Type: application/json
 
 ### ⚠️ Careful Now: XSS ... ?
 
-GET http://localhost:7000/welcome
+GET http://localhost:6000/welcome
 Content-Type: application/html
 
 {}
 
 ### ❌ Careful Now: XSS by opting into custom response write
 
-GET http://localhost:7000/welcome
+GET http://localhost:6000/welcome
     ?lastname=gibson<script>alert(1)</script>
 Content-Type: application/html
 
 {}
+
+## Vulnerability demo: Open Redirect
+
+### ❌ Careful Now: Open Redirect
+
+GET http://localhost:6000/cloudpawnery/user
+    ?userId=1
+    &redirectPage=http://evil.com
+
 

@@ -174,5 +174,5 @@ func main() {
     })
 
     // Start the HTTP server
-    router.Run(":7000")
+    router.Run(":6000")
 }
