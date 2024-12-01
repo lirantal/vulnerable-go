@@ -8,10 +8,16 @@ import (
     "net/url"
     "os"
     "os/exec"
+    "time"
 
     "log/slog"
 
+    // Gin web framework
     "github.com/gin-gonic/gin"
+
+    // SQLite database driver and query builder
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/jmoiron/sqlx"
 )
 
 const baseHost = "localtest.me:8080"
@@ -30,6 +36,14 @@ var (
 type FileInfo struct {
     Filename string `json:"filename"`
     Download string `json:"download"`
+}
+
+type File struct {
+    ID        int       `db:"id"`
+    Filename  string    `db:"filename"`
+    Signature string    `db:"signature"`
+    TenantID  string    `db:"tenant_id"`
+    CreatedAt time.Time `db:"created_at"`
 }
 
 func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) error {
@@ -103,6 +117,21 @@ func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) erro
         return fmt.Errorf("%w: %v", ErrImageResize, err)
     }
 
+    // Record the file operation in the database:
+    db, err := sqlx.Open("sqlite3", "./mydb.db")
+    defer db.Close()
+    if err != nil {
+        slog.Error("Failed to open database", "error", err)
+        return fmt.Errorf("Failed to open database: %v", err)
+    }
+
+    q := "INSERT INTO files (filename, signature, tenant_id, created_at) VALUES ('" + info.Filename + "', '', '" + tenantID + "', '" + time.Now().String() + "')" 
+    _, err = db.Exec(q)
+    if err != nil {
+        slog.Error("Failed to insert record into database", "error", err)
+        return fmt.Errorf("Failed to insert record into database: %v", err)
+    }
+
     slog.Info("Downloaded and resized image", "filename", targetFilename)
     return nil
 }
@@ -144,6 +173,46 @@ func main() {
 		lastname := c.Query("lastname")
 		c.String(http.StatusOK, "Hello %s %s", firstname, lastname)
         return
+    })
+
+    // Define a GET endpoint to loop through all the records in the database
+    // for the files table and print them (using File struct) and return them
+    // as JSON response
+    router.GET("/cloudpawnery/image", func(c *gin.Context) {
+        // get tenantID from query parameter
+        tenantID := c.Query("tenantID")
+
+
+        db, err := sqlx.Open("sqlite3", "./mydb.db")
+        defer db.Close()
+
+        if err != nil {
+            slog.Error("Failed to open database", "error", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open database"})
+            return
+        }
+
+        rows, err := db.Queryx("SELECT * FROM files WHERE tenant_id = '" + tenantID + "'")
+        if err != nil {
+            slog.Error("Failed to query database", "error", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
+            return
+        }
+        defer rows.Close()
+
+        var files []File
+        for rows.Next() {
+            var f File
+            err := rows.StructScan(&f)
+            if err != nil {
+                slog.Error("Failed to scan database row", "error", err)
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan database row"})
+                return
+            }
+            files = append(files, f)
+        }
+
+        c.JSON(http.StatusOK, gin.H{"files": files})
     })
 
     // Define a POST endpoint

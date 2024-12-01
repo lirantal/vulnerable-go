@@ -27,3 +27,5 @@ go.work.sum
 
 uploads/
 **/node_modules/
+
+mydb.db
