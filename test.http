@@ -1,4 +1,8 @@
+
+## Vulnerability demo: Command Injection 
+
 ### ✅ All Systems Go 
+
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
 
@@ -34,6 +38,8 @@ Content-Type: application/json
 
 {}
 
+## Vulnerability demo: SSRF
+
 ### ❌ Careful Now: SSRF
 // Send a POST request with a JSON body to the specified URL
 // This is a safe request to a local server
@@ -45,6 +51,9 @@ POST http://localhost:7000/cloudpawnery/image
 Content-Type: application/json
 
 {}
+
+
+## Vulnerability demo: XSS
 
 ### ⚠️ Careful Now: XSS ... ?
 
@@ -60,3 +69,4 @@ GET http://localhost:7000/welcome
 Content-Type: application/html
 
 {}
+
