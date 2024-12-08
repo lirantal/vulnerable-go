@@ -141,6 +141,28 @@ func main() {
     router := gin.Default()
     router.LoadHTMLGlob("templates/*")
 
+    // Nice way to show 2 vulnerabilities in one:
+    // 1. SSRF (because the imgURL query parameter is controlled by the user)
+    // 1.1. example request: curl "http://localhost:4002/user/image?imgUrl=https://placehold.co/200x200"
+    // 2. XSS (because the content-type output is controlled by the remote server and can be set to text/html)
+    // 1.2. example request: tbd
+    router.GET("/user/image", func(c *gin.Context) {
+        var imgURL string
+        imgURL = c.Query("imgUrl")
+
+        resp, err := http.Get(imgURL)
+        if err != nil {
+            slog.Error("Failed to get image", "error", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get image"})
+            return
+        }
+        defer resp.Body.Close()
+
+        c.DataFromReader(http.StatusOK, resp.ContentLength, 
+            resp.Header.Get("Content-Type"), resp.Body, nil)
+    });
+
+
     router.GET("/cloudpawnery/user", func(c *gin.Context) {
         userId := c.Query("userId")
         redirectPage := c.Query("redirectPage")
@@ -243,5 +265,5 @@ func main() {
     })
 
     // Start the HTTP server
-    router.Run(":6000")
+    router.Run(":4002")
 }
