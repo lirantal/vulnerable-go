@@ -11,12 +11,14 @@ import (
     "time"
 
     "log/slog"
+    "html/template"
 
     // Gin web framework
     "github.com/gin-gonic/gin"
 
     // SQLite database driver and query builder
 	_ "github.com/mattn/go-sqlite3"
+    "database/sql"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -162,6 +164,81 @@ func main() {
             resp.Header.Get("Content-Type"), resp.Body, nil)
     });
 
+
+    // This GET route endpoint shows 2 vulnerabilities:
+    // 1. Template Injection (SSTI) due to the template compiled with user input
+    // 2. XSS due to the query parameter is used in the template
+    router.GET("/users", func(c *gin.Context) {
+        query := c.Query("q")
+
+        db, err := sql.Open("sqlite3", "mydb.db")
+        if err != nil {
+            slog.Error("Failed to connect to database", "error", err)
+        }
+        defer db.Close()
+    
+        rows, err := db.Query(fmt.Sprintf("SELECT * FROM users WHERE username LIKE '%%%s%%'", query))
+        if err != nil {
+            c.String(http.StatusInternalServerError, "Error executing query")
+            return
+        }
+        defer rows.Close()
+    
+        var results []struct {
+            ID          int
+            Username    string
+            Email       string
+        }
+    
+        for rows.Next() {
+            var id int
+            var username string
+            var email string
+            err := rows.Scan(&id, &username, &email)
+            if err != nil {
+                slog.Error("Failed to map query results", "error", err)
+            }
+            results = append(results, struct {
+                ID          int
+                Username    string
+                Email       string
+            }{id, username, email})
+        }
+    
+        tmpl, err := template.New("search").Parse(fmt.Sprintf(`
+                    <h2>Results for username query "%s":</h2>
+                    <ul>
+                        {{range .Results}}
+                            <li><a href="{{.Email}}">{{.Username}}</a></li>
+                        {{end}}
+                    </ul>
+            `, query))
+        if err != nil {
+            c.String(http.StatusInternalServerError, "Error creating template")
+            return
+        }
+    
+        data := struct {
+            Query   string
+            Results []struct {
+                ID          int
+                Username    string
+                Email       string
+            }
+        }{
+            Query:   query,
+            Results: results,
+        }
+    
+        // Set the content type to text/html and render the template
+        c.Header("Content-Type", "text/html")
+    
+        err = tmpl.Execute(c.Writer, data)
+        if err != nil {
+            c.String(http.StatusInternalServerError, "Error executing template")
+            return
+        }
+    })
 
     router.GET("/cloudpawnery/user", func(c *gin.Context) {
         userId := c.Query("userId")
