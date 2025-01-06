@@ -48,6 +48,12 @@ type File struct {
     CreatedAt time.Time `db:"created_at"`
 }
 
+type UsersResult struct {
+    ID          int
+    Username    string
+    Email       string
+}
+
 func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) error {
     slog.Info("Processing request", "tenantID", tenantID, "fileID", fileID)
 
@@ -184,11 +190,7 @@ func main() {
         }
         defer rows.Close()
     
-        var results []struct {
-            ID          int
-            Username    string
-            Email       string
-        }
+        var results []UsersResult
     
         for rows.Next() {
             var id int
@@ -198,11 +200,7 @@ func main() {
             if err != nil {
                 slog.Error("Failed to map query results", "error", err)
             }
-            results = append(results, struct {
-                ID          int
-                Username    string
-                Email       string
-            }{id, username, email})
+            results = append(results, UsersResult{id, username, email})
         }
     
         tmpl, err := template.New("search").Parse(fmt.Sprintf(`
