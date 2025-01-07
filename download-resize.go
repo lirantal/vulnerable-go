@@ -70,11 +70,12 @@ func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) erro
 
     // Make HTTP request
     resp, err := http.Get(urlStr)
+    defer resp.Body.Close()
     if err != nil {
         slog.Error("HTTP request failed", "error", err)
         return fmt.Errorf("%w: %v", ErrHTTPRequestFailed, err)
     }
-    defer resp.Body.Close()
+
 
     // Read response body
     body, err := io.ReadAll(resp.Body)
@@ -93,11 +94,12 @@ func downloadAndResize(ctx *gin.Context, tenantID, fileID, fileSize string) erro
 
     // Download file
     downloadResp, err := http.Get(info.Download)
+    defer downloadResp.Body.Close()
     if err != nil {
         slog.Error("Failed to download file", "error", err)
         return fmt.Errorf("%w: %v", ErrFileDownload, err)
     }
-    defer downloadResp.Body.Close()
+    
 
     // Create target filename
     targetFilename := fmt.Sprintf("uploads/%s", info.Filename)
@@ -159,12 +161,13 @@ func main() {
         imgURL = c.Query("imgUrl")
 
         resp, err := http.Get(imgURL)
+        defer resp.Body.Close()
         if err != nil {
             slog.Error("Failed to get image", "error", err)
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get image"})
             return
         }
-        defer resp.Body.Close()
+        
 
         c.DataFromReader(http.StatusOK, resp.ContentLength, 
             resp.Header.Get("Content-Type"), resp.Body, nil)
@@ -178,17 +181,19 @@ func main() {
         query := c.Query("q")
 
         db, err := sql.Open("sqlite3", "mydb.db")
+        defer db.Close()
         if err != nil {
             slog.Error("Failed to connect to database", "error", err)
         }
-        defer db.Close()
+        
     
         rows, err := db.Query(fmt.Sprintf("SELECT * FROM users WHERE username LIKE '%%%s%%'", query))
+        defer rows.Close()
         if err != nil {
             c.String(http.StatusInternalServerError, "Error executing query")
             return
         }
-        defer rows.Close()
+        
     
         var results []UsersResult
     
@@ -286,12 +291,13 @@ func main() {
         }
 
         rows, err := db.Queryx("SELECT * FROM files WHERE tenant_id = '" + tenantID + "'")
+        defer rows.Close()
         if err != nil {
             slog.Error("Failed to query database", "error", err)
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
             return
         }
-        defer rows.Close()
+        
 
         var files []File
         for rows.Next() {
