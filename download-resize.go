@@ -10,6 +10,9 @@ import (
     "os/exec"
     "time"
 
+    "path/filepath"
+    "strings"
+
     "log/slog"
     "html/template"
 
@@ -340,6 +343,34 @@ func main() {
         // Return a success response
         c.JSON(http.StatusOK, gin.H{"message": "File downloaded and resized successfully"})
     })
+
+    router.GET("/cloudpawnery/download", func(c *gin.Context) {
+
+        filename := c.Query("filename")
+        slog.Info("Filename", "filename", filename)
+        if filename == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Missing filename"})
+                return
+        }
+
+        // Preventing Path Traversal
+        SanitizedFilename := strings.Replace(filename, "../", "", -1)
+        cleanedFilename := filepath.Clean(SanitizedFilename)
+
+        baseDir := "uploads/"
+        fullPath := filepath.Join(baseDir, SanitizedFilename)
+
+        // Check if file exists
+        if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+            // return an empty 404 if file does not exist
+            c.String(http.StatusNotFound, "File not found")
+            return
+        }
+
+        // Serve the file
+        c.File(fullPath)
+    })
+
 
     // Start the HTTP server
     router.Run(":4002")

