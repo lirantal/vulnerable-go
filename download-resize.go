@@ -218,11 +218,7 @@ func main() {
     
         data := struct {
             Query   string
-            Results []struct {
-                ID          int
-                Username    string
-                Email       string
-            }
+            Results []UsersResult
         }{
             Query:   query,
             Results: results,
