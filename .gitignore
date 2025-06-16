@@ -29,3 +29,4 @@ uploads/
 **/node_modules/
 
 mydb.db
+.qodo

@@ -349,7 +349,7 @@ func main() {
         filename := c.Query("filename")
         slog.Info("Filename", "filename", filename)
         if filename == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Missing filename"})
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Missing filename"}) 
                 return
         }
 
@@ -358,7 +358,7 @@ func main() {
         cleanedFilename := filepath.Clean(SanitizedFilename)
 
         baseDir := "uploads/"
-        fullPath := filepath.Join(baseDir, SanitizedFilename)
+        fullPath := filepath.Join(baseDir, cleanedFilename)
 
         // Check if file exists
         if _, err := os.Stat(fullPath); os.IsNotExist(err) {
