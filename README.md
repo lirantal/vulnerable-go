@@ -63,3 +63,7 @@ Use the attached `test.http` file in this repository to test the API endpoint.
 ```bash
 ./convert.out
 ```
+
+## Contributing
+
+Please consult [CONTRIBUTING](./CONTRIBUTING.md) for guidelines on contributing to this project.
